@@ -22,10 +22,14 @@ def get_html(url, params=None):
 
 def get_content(html):
     """"""
+    post_urls = []
     soup = BeautifulSoup(html, 'html.parser')
     title_items = soup.find_all('a', class_="SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE")
     # user_items = soup.find_all('a', class_ ="_2mHuuvyV9doV3zwbZPtIPG")
-    print(title_items)
+    for item in title_items:
+        post_urls.append(item.get('href'))
+
+    print(post_urls)
 
 
 def parse():
