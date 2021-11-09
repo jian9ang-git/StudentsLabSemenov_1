@@ -1,12 +1,12 @@
 import os
 import requests
 import time
-from bs4 import BeautifulSoup
+import uuid
+from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.alert import Alert
-
 
 filepath = os.path.realpath('data.txt')
 URL = 'https://www.reddit.com/top/?t=month'
@@ -14,6 +14,8 @@ URLPOST = 'https://www.reddit.com/r/antiwork/comments/q82vqk/quit_my_job_last_ni
 HEADERS = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/\
 88.0.4324.150 Safari/537.36',
            'accept': '*/*'}
+fields = ['id', 'post_URL', 'username', 'user_karma', 'user_cake_day',
+          'post_category', 'post_karma', 'post_date', ' num_comments', 'num_votes']
 
 
 def get_selenium():
@@ -26,42 +28,51 @@ def get_selenium():
     options.add_experimental_option("prefs", prefs)
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--incognito')
-    # options.add_argument('headless')
+    options.add_argument('headless')
     driver = webdriver.Chrome(executable_path='/home/alex/PycharmProjects/StudentsLabSemenov_1/parser/chromedriver',
                               options=options)
     return driver
 
 
-def get_html(url, file_path):
+def get_html(url):
     """"""
     driver = get_selenium()
     driver.get(url=url)
     time.sleep(10)
-    find_post_urls = driver.\
-        find_element_by_class_name("_2tbHP6ZydRpjI44J3syuqC")
-
-    while True:
-        webdriver.ActionChains(driver).move_to_element(find_post_urls).perform()
-        karma = driver.find_element_by_class_name("_18aX_pAQub_mu1suz4 - i8j").text
+    html = driver.page_source
+    return html
 
 
 def get_content(html):
     """"""
     post_urls = []
-    soup = BeautifulSoup(html, 'html.parser')
-    title_items = soup.find_all('a', class_="SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE")
+    soup = BS(html, 'html.parser')
+    all_posts = soup.find_all
+    feed_items_html = soup.find('div', class_="rpBJOHq2PR60pnwJlUyP0")
+    print(feed_items_html)
+
+    # title_items = soup.find_all('a', class_="SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE")
     # user_items = soup.find_all('a', class_ ="_2mHuuvyV9doV3zwbZPtIPG")
-    for item in title_items:
-        post_urls.append(item.get('href'))
+    # for item in title_items:
+    #     post_urls.append(item.get('href'))
 
 
 def parse():
     """"""
     html = get_html(URL)
-    get_content(html.text)
+    get_content(html)
 
 
 def main():
-    get_html(URL, filepath)
+    parse()
+    # id = uuid.uuid4().hex
+    # get_html(URL, filepath)
+
+
 if __name__ == "__main__":
     main()
+
+
+
+    # find_post_urls = driver.\
+    #     find_element_by_class_name("_2tbHP6ZydRpjI44J3syuqC") - post's url
