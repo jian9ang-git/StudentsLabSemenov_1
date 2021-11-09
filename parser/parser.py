@@ -38,18 +38,22 @@ def get_html(url):
     """"""
     driver = get_selenium()
     driver.get(url=url)
-    time.sleep(10)
+    time.sleep(5)
     html = driver.page_source
-    return html
+    with open('data.txt', 'w') as file:
+        file.write(html)
 
 
-def get_content(html):
+def get_content():
     """"""
     post_urls = []
-    soup = BS(html, 'html.parser')
-    all_posts = soup.find_all
-    feed_items_html = soup.find('div', class_="rpBJOHq2PR60pnwJlUyP0")
-    print(feed_items_html)
+    with open('data.txt') as file:
+        soup = BS(file, 'html.parser')
+        all_posts = soup.find_all
+        feed_items_html = soup.find('div', class_="rpBJOHq2PR60pnwJlUyP0")
+        first_post = feed_items_html.find_next()
+        print(first_post)
+
 
     # title_items = soup.find_all('a', class_="SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE")
     # user_items = soup.find_all('a', class_ ="_2mHuuvyV9doV3zwbZPtIPG")
@@ -60,13 +64,14 @@ def get_content(html):
 def parse():
     """"""
     html = get_html(URL)
-    get_content(html)
+    # get_content(html)
 
 
 def main():
-    parse()
+    # parse()
     # id = uuid.uuid4().hex
     # get_html(URL, filepath)
+    get_content()
 
 
 if __name__ == "__main__":
