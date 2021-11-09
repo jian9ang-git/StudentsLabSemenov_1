@@ -2,11 +2,14 @@ import os
 import requests
 import time
 import uuid
+from datetime import datetime
+from datetime import timedelta
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.alert import Alert
+
 
 filepath = os.path.realpath('data.txt')
 URL = 'https://www.reddit.com/top/?t=month'
@@ -32,6 +35,17 @@ def get_selenium():
     driver = webdriver.Chrome(executable_path='/home/alex/PycharmProjects/StudentsLabSemenov_1/parser/chromedriver',
                               options=options)
     return driver
+
+
+def get_post_date(parsed_date):
+    if 'days' in parsed_date:
+        parsed_date = int(parsed_date[:2])
+        now = datetime.now()
+        new_date = (now - timedelta(parsed_date)).strftime("%Y-%m-%d")
+        return new_date
+    else:
+        new_date = datetime.now().strftime("%d-%m-%Y")
+        return new_date
 
 
 def get_html(url):
@@ -70,8 +84,9 @@ def get_content_from_posts(all_posts_list):
             post_category = item.find('a', class_="_3ryJoIoycVkA88fy40qNJc").get('href')
             username = item.find('a', class_="_2tbHP6ZydRpjI44J3syuqC _23wugcdiaj44hdfugIAlnX oQctV4n0yUb0uiHDdGnmE") \
                 .get('href')
+            date = get_post_date(item.find('a', class_="_3jOxDPIQ0KaOWpzvSQo-1s").text)
 
-            print(username)
+            print(date)
         except:
             error_counter += 1
             print('cant find data')
