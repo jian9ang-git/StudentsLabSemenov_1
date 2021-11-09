@@ -44,24 +44,41 @@ def get_html(url):
         file.write(html)
 
 
-def get_content():
+def get_posts():
     """"""
-    post_urls = []
     with open('data.txt') as file:
         soup = BS(file, 'html.parser')
         all_posts = soup.find_all
         feed_items_html = soup.find('div', class_="rpBJOHq2PR60pnwJlUyP0")
         first_post = feed_items_html.find_next()
-        print(first_post)
+        all_posts_list = [first_post]
+        all_posts = first_post.find_next_siblings()
+
+        for post in all_posts:
+            all_posts_list.append(post)
+
+        return all_posts_list
 
 
-    # title_items = soup.find_all('a', class_="SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE")
-    # user_items = soup.find_all('a', class_ ="_2mHuuvyV9doV3zwbZPtIPG")
-    # for item in title_items:
-    #     post_urls.append(item.get('href'))
+def get_content_from_posts(all_posts_list):
+    error_counter = 0
+    a = len(all_posts_list)
+
+    for item in all_posts_list:
+        try:
+            post_url = item.find('a', class_='SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE').get('href')
+            post_category = item.find('a', class_="_3ryJoIoycVkA88fy40qNJc").get('href')
+            username = item.find('a', class_="_2tbHP6ZydRpjI44J3syuqC _23wugcdiaj44hdfugIAlnX oQctV4n0yUb0uiHDdGnmE") \
+                .get('href')
+
+            print(username)
+        except:
+            error_counter += 1
+            print('cant find data')
+    print(error_counter)
 
 
-def parse():
+def parser():
     """"""
     html = get_html(URL)
     # get_content(html)
@@ -70,14 +87,10 @@ def parse():
 def main():
     # parse()
     # id = uuid.uuid4().hex
-    # get_html(URL, filepath)
-    get_content()
+    # get_html(URL)
+    posts = get_posts()
+    get_content_from_posts(posts)
 
 
 if __name__ == "__main__":
     main()
-
-
-
-    # find_post_urls = driver.\
-    #     find_element_by_class_name("_2tbHP6ZydRpjI44J3syuqC") - post's url
