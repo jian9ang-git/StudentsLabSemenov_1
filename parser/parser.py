@@ -4,6 +4,8 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.alert import Alert
 
 
 filepath = os.path.realpath('data.txt')
@@ -14,10 +16,33 @@ HEADERS = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KH
            'accept': '*/*'}
 
 
-def get_html(url, params=None):
+def get_selenium():
+    """Build chrome driver with additional settings"""
+    prefs = {"profile.default_content_setting_values.notifications": 2}
+    options = Options()
+    options.add_argument("--disable-infobars")
+    options.add_argument("--disable-extensions")
+    options.add_argument("start-maximized")
+    options.add_experimental_option("prefs", prefs)
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--incognito')
+    # options.add_argument('headless')
+    driver = webdriver.Chrome(executable_path='/home/alex/PycharmProjects/StudentsLabSemenov_1/parser/chromedriver',
+                              options=options)
+    return driver
+
+
+def get_html(url, file_path):
     """"""
-    r = requests.get(url, headers=HEADERS, params=params)
-    return r
+    driver = get_selenium()
+    driver.get(url=url)
+    time.sleep(10)
+    find_post_urls = driver.\
+        find_element_by_class_name("_2tbHP6ZydRpjI44J3syuqC")
+
+    while True:
+        webdriver.ActionChains(driver).move_to_element(find_post_urls).perform()
+        karma = driver.find_element_by_class_name("_18aX_pAQub_mu1suz4 - i8j").text
 
 
 def get_content(html):
@@ -29,8 +54,6 @@ def get_content(html):
     for item in title_items:
         post_urls.append(item.get('href'))
 
-    print(post_urls)
-
 
 def parse():
     """"""
@@ -39,9 +62,6 @@ def parse():
 
 
 def main():
-    """"""
-    parse()
-
-
+    get_html(URL, filepath)
 if __name__ == "__main__":
     main()
