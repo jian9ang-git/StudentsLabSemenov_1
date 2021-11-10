@@ -85,8 +85,10 @@ def get_content_from_posts(all_posts_list):
             username = item.find('a', class_="_2tbHP6ZydRpjI44J3syuqC _23wugcdiaj44hdfugIAlnX oQctV4n0yUb0uiHDdGnmE") \
                 .get('href')
             date = get_post_date(item.find('a', class_="_3jOxDPIQ0KaOWpzvSQo-1s").text)
+            num_votes = item.find('div', class_="_1rZYMD_4xY3gRcSS3p8ODO _3a2ZHWaih05DgAOtvu6cIo").text
+            num_votes = item.find('span', class_="FHCV02u6Cp2zYL0fhQPsO").text
 
-            print(date)
+            print(num_votes)
         except:
             error_counter += 1
             print('cant find data')
@@ -105,7 +107,8 @@ def main():
     # get_html(URL)
     posts = get_posts()
     get_content_from_posts(posts)
-
-
+    # https://www.reddit.com/user/hestolemysmile/about.json?redditWebClient=web2x&app=web2x-client-production&gilding_detail=1&awarded_detail=1&raw_json=1
+    # https://www.reddit.com/user/Atillion/about.json?redditWebClient=web2x&app=web2x-client-production&gilding_detail=1&awarded_detail=1&raw_json=1
+    # https://gql.reddit.com/?request_timestamp=1636503283392
 if __name__ == "__main__":
     main()
