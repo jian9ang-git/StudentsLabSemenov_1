@@ -3,7 +3,7 @@ import re
 import requests
 import time
 import uuid
-from .models import GoalPost
+from models import GoalPost
 from datetime import datetime
 from datetime import timedelta
 from bs4 import BeautifulSoup as BS
@@ -85,29 +85,32 @@ def get_posts(this_is_first_cicle=True, last_post_id=''):
         return gross_posts_list
 
 
-def get_content_from_posts(gross_posts_list):
+def get_content_from_posts(gross_posts_list, clean_posts_dict):
     """"""
     not_a_posts_num = 0
     posts_num = len(gross_posts_list)
     pattern = '_1oQyIsiPHYt6nx7VOmd1sz'
-    clean_posts_list = []
     for item in gross_posts_list:
+        g_post = GoalPost()  # ToDo setters for all attributes?
         try:
-            post_id = item.find('div', class_=re.compile(pattern)).get('id')
-            post_url = item.find('a', class_='SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE').get('href')
-            post_category = item.find('a', class_="_3ryJoIoycVkA88fy40qNJc").get('href')
-            username = item.find('a', class_="_2tbHP6ZydRpjI44J3syuqC _23wugcdiaj44hdfugIAlnX oQctV4n0yUb0uiHDdGnmE") \
-                .get('href')
-            date = get_post_date(item.find('a', class_="_3jOxDPIQ0KaOWpzvSQo-1s").text)
-            num_votes = item.find('div', class_="_1rZYMD_4xY3gRcSS3p8ODO _3a2ZHWaih05DgAOtvu6cIo").text
-            num_comments = item.find('span', class_="FHCV02u6Cp2zYL0fhQPsO").text
+            post_id_html = item.find('div', class_=re.compile(pattern)).get('id')
+            g_post.post_id_html = post_id_html
+            g_post.post_url = item.find('a', class_='SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE').get('href')
+            g_post.post_category = item.find('a', class_="_3ryJoIoycVkA88fy40qNJc").get('href')
+            g_post.username = item.find('a', class_="_2tbHP6ZydRpjI44J3syuqC _23wugcdiaj44hdfugIAlnX oQctV4n0yUb0uiHDdGnmE").get('href')
+            g_post.post_date = get_post_date(item.find('a', class_="_3jOxDPIQ0KaOWpzvSQo-1s").text)
+            g_post.num_votes = item.find('div', class_="_1rZYMD_4xY3gRcSS3p8ODO _3a2ZHWaih05DgAOtvu6cIo").text
+            g_post.num_comments = item.find('span', class_="FHCV02u6Cp2zYL0fhQPsO").text
+
+            clean_posts_dict[post_id_html] = g_post
         except:
             not_a_posts_num += 1
             print('cant find data')
 
     print(f'not posts - {not_a_posts_num}')
     posts_num = posts_num - not_a_posts_num
-    return posts_num
+    print(f'posts num - {posts_num}')
+    return clean_posts_dict
 
 
 def parser():
@@ -123,8 +126,9 @@ def main():
     print(new_page_height)
     print(type(new_page_height))
     posts = get_posts()
-    a = get_content_from_posts(posts)
-    print(f'posts - {a}')
+    a = get_content_from_posts(posts, {})
+    for i in a.values():
+        print(i)
 
     # сюда двигается страница  1-class="FohHGMokxXLkon1aacMoi" 2-class="_1yYeg-XN7v7i06TrK8Lh13"
 
