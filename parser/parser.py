@@ -1,7 +1,9 @@
 import os
+import re
 import requests
 import time
 import uuid
+from .models import GoalPost
 from datetime import datetime
 from datetime import timedelta
 from bs4 import BeautifulSoup as BS
@@ -13,7 +15,6 @@ from selenium.webdriver.common.alert import Alert
 
 filepath = os.path.realpath('data.txt')
 URL = 'https://www.reddit.com/top/?t=month'
-URLPOST = 'https://www.reddit.com/r/antiwork/comments/q82vqk/quit_my_job_last_night_it_was_nice_to_be_home_to/'
 HEADERS = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/\
 88.0.4324.150 Safari/537.36',
            'accept': '*/*'}
@@ -38,6 +39,7 @@ def get_selenium():
 
 
 def get_post_date(parsed_date):
+    """"""
     if 'days' in parsed_date:
         parsed_date = int(parsed_date[:2])
         now = datetime.now()
@@ -48,67 +50,84 @@ def get_post_date(parsed_date):
         return new_date
 
 
-def get_html(url):
+def get_html_and_page_height(url):
     """"""
     driver = get_selenium()
     driver.get(url=url)
-    time.sleep(5)
+    new_page_height = driver.execute_script("return document.body.scrollHeight")
     html = driver.page_source
-    with open('data.txt', 'w') as file:
+    with open('parser/data.txt', 'w') as file:
         file.write(html)
+    return new_page_height
 
 
-def get_posts():
+def get_posts(this_is_first_cicle=True, last_post_id=''):
     """"""
-    with open('data.txt') as file:
+    with open('parser/data.txt') as file:
         soup = BS(file, 'html.parser')
-        all_posts = soup.find_all
-        feed_items_html = soup.find('div', class_="rpBJOHq2PR60pnwJlUyP0")
+    all_posts = soup.find_all
+    feed_items_html = soup.find('div', class_="rpBJOHq2PR60pnwJlUyP0")
+    if this_is_first_cicle:
         first_post = feed_items_html.find_next()
-        all_posts_list = [first_post]
+        gross_posts_list = [first_post]
         all_posts = first_post.find_next_siblings()
 
         for post in all_posts:
-            all_posts_list.append(post)
+            gross_posts_list.append(post)
+        return gross_posts_list
+    else:
+        new_first_post = feed_items_html.find('div', id=last_post_id)
+        gross_posts_list = [new_first_post]
+        all_posts = new_first_post.find_next_siblings()
 
-        return all_posts_list
+        for post in all_posts:
+            gross_posts_list.append(post)
+        return gross_posts_list
 
 
-def get_content_from_posts(all_posts_list):
-    error_counter = 0
-    a = len(all_posts_list)
-
-    for item in all_posts_list:
+def get_content_from_posts(gross_posts_list):
+    """"""
+    not_a_posts_num = 0
+    posts_num = len(gross_posts_list)
+    pattern = '_1oQyIsiPHYt6nx7VOmd1sz'
+    clean_posts_list = []
+    for item in gross_posts_list:
         try:
+            post_id = item.find('div', class_=re.compile(pattern)).get('id')
             post_url = item.find('a', class_='SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE').get('href')
             post_category = item.find('a', class_="_3ryJoIoycVkA88fy40qNJc").get('href')
             username = item.find('a', class_="_2tbHP6ZydRpjI44J3syuqC _23wugcdiaj44hdfugIAlnX oQctV4n0yUb0uiHDdGnmE") \
                 .get('href')
             date = get_post_date(item.find('a', class_="_3jOxDPIQ0KaOWpzvSQo-1s").text)
             num_votes = item.find('div', class_="_1rZYMD_4xY3gRcSS3p8ODO _3a2ZHWaih05DgAOtvu6cIo").text
-            num_votes = item.find('span', class_="FHCV02u6Cp2zYL0fhQPsO").text
-
-            print(num_votes)
+            num_comments = item.find('span', class_="FHCV02u6Cp2zYL0fhQPsO").text
         except:
-            error_counter += 1
+            not_a_posts_num += 1
             print('cant find data')
-    print(error_counter)
+
+    print(f'not posts - {not_a_posts_num}')
+    posts_num = posts_num - not_a_posts_num
+    return posts_num
 
 
 def parser():
     """"""
-    html = get_html(URL)
+    html = get_html_and_page_height(URL)
     # get_content(html)
 
 
 def main():
-    # parse()
+    # parser()
     # id = uuid.uuid4().hex
-    # get_html(URL)
+    new_page_height = get_html_and_page_height(URL)
+    print(new_page_height)
+    print(type(new_page_height))
     posts = get_posts()
-    get_content_from_posts(posts)
-    # https://www.reddit.com/user/hestolemysmile/about.json?redditWebClient=web2x&app=web2x-client-production&gilding_detail=1&awarded_detail=1&raw_json=1
-    # https://www.reddit.com/user/Atillion/about.json?redditWebClient=web2x&app=web2x-client-production&gilding_detail=1&awarded_detail=1&raw_json=1
-    # https://gql.reddit.com/?request_timestamp=1636503283392
+    a = get_content_from_posts(posts)
+    print(f'posts - {a}')
+
+    # сюда двигается страница  1-class="FohHGMokxXLkon1aacMoi" 2-class="_1yYeg-XN7v7i06TrK8Lh13"
+
+
 if __name__ == "__main__":
     main()
